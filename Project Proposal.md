@@ -1,56 +1,47 @@
-<h1>Social Media Mini App</h1>
-<h2>1. Project Overview:</h2>
-The Social Media Mini App is a lightweight yet feature-rich social networking platform designed to offer users an engaging and visually appealing experience. This project integrates a frontend built with HTML, CSS, and JavaScript and a backend developed using C++ with Object-Oriented Programming (OOP) principles. The app will support user authentication, post creation, likes, comments, a friend system, and file handling to store user data.
-<h2>2. Objectives:</h2>
--Develop a functional social media platform with an interactive and user-friendly interface.
+# Maze Solver Game
 
--Implement C++ OOP concepts for efficient backend operations.
+## 1. Project Overview
+The **Maze Solver Game** is an engaging 2D puzzle game where players navigate through a randomly generated maze to reach the exit. The game is built using **C++ with Object-Oriented Programming (OOP) principles** and utilizes **SFML** for a visually appealing and interactive graphical interface. It offers multiple difficulty levels, a start screen, a timer, and various game mechanics to enhance the player’s experience.
 
--Provide users with a seamless experience, including profile management, posting, and engaging with content.
+## 2. Objectives
+- Develop a functional **maze-solving game** with an interactive and user-friendly GUI.
+- Implement **C++ OOP concepts** for an efficient and modular backend.
+- Provide **different difficulty levels** to accommodate various skill levels.
+- Ensure smooth **player movement, collision detection, and win conditions**.
+- Utilize **SFML for rendering, event handling, and user interface design**.
 
--Ensure data persistence using file handling in C++.
-<h2>3. Technology Stack:</h2>
+## 3. Technology Stack
 
--Frontend: HTML, CSS, JavaScript
+- **Graphics Library:** SFML (for GUI and rendering)
+- **Programming Language:** C++ (with OOP principles)
+- **Maze Generation Algorithm:** Recursive Backtracking or Prim’s Algorithm
+- **Game Logic:** Player movement, collision detection, and win condition
 
--Backend: C++ (OOP principles)
+## 4. Features and Functionalities
 
--Data Storage: File handling in C++
-<h2>4. Features and Functionalities:</h2>
-<h3>Frontend Features:</h3>
+### Frontend Features (SFML GUI)
+#### Start Screen:
+- A **main menu** with options: **Start Game, Select Difficulty, and Quit**.
 
-<b>Cover Page:</b> A visually appealing landing page with animations and interactive elements.
+#### User Interface Enhancements:
+1. **Graphically enhanced** maze with smooth animations.
+2. **Timer system** to track the player’s completion time.
+3. **Modern visual elements** with proper scaling and color themes.
 
-<b>User Interface Enhancements:</b>
+### Backend Features (C++ OOP)
 
-1.Colorful and modern design with larger fonts where needed.
+#### Maze Generation and Gameplay:
+1. **Randomly generated mazes** with different structures in each game session.
+2. **Collision detection** to prevent players from passing through walls.
+3. **Exit detection** to determine when the player reaches the goal.
 
-2.Shapes and styling elements to enhance the display.
+#### Difficulty Levels:
+1. **Easy Mode:** Small-sized maze with simple paths.
+2. **Medium Mode:** Larger maze with moderate complexity.
+3. **Hard Mode:** Highly intricate maze with many dead ends and obstacles.
 
-3.Timer animations to enhance user interaction.
+#### Player Mechanics:
+1. **Smooth movement using arrow keys/WASD.**
+2. **Collision handling** to ensure realistic interactions with walls.
+3. **Timer system** to challenge the player based on speed.
 
-<h3>Backend Features (C++ OOP):</h3>
-
-<b>User Management:</b>
-
-1.Registration and login system with secure password handling.
-
-2.Profile management (username, bio, and profile updates).
-
-<b>Posts and Engagement:</b>
-
-1.Ability to create, edit, and delete posts.
-
-2.Like and comment system to interact with posts.
-
-<b>Friend System:</b>
-
-1.Send and accept friend requests.
-
-2.View a list of friends and interact with their posts.
-
-<b>File Handling:</b>
-
-1.Store and retrieve user data, posts, likes, and comments.
-
-2.Ensure data persistence across sessions.
