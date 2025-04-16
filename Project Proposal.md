@@ -41,7 +41,7 @@ The **Maze Solver Game** is an engaging 2D puzzle game where players navigate th
 3. **Hard Mode:** Highly intricate maze with many dead ends and obstacles.
 
 #### Player Mechanics:
-1. **Smooth movement using arrow keys/WASD.**
+1. **Smooth movement using arrow keys.**
 2. **Collision handling** to ensure realistic interactions with walls.
 3. **Timer system** to challenge the player based on speed.
 
