@@ -2,6 +2,7 @@
 #include <stack>
 #include <vector>
 #include <random>
+#include <iostream>
 
 #define SIZE 30
 #define CELL_WIDTH 20
@@ -71,11 +72,14 @@ private:
         int diff = current.pos - neighbor.pos;
         if (diff == size) {
             current.walls[0] = false; neighbor.walls[2] = false;
-        } else if (diff == -1) {
+        }
+        else if (diff == -1) {
             current.walls[1] = false; neighbor.walls[3] = false;
-        } else if (diff == -size) {
+        }
+        else if (diff == -size) {
             current.walls[2] = false; neighbor.walls[0] = false;
-        } else if (diff == 1) {
+        }
+        else if (diff == 1) {
             current.walls[3] = false; neighbor.walls[1] = false;
         }
     }
@@ -137,6 +141,22 @@ public:
 
 class Game {
 private:
+
+    sf::Clock clock;
+    sf::Time elapsedTime;
+    sf::Font font;
+    sf::Text timerText;
+
+   
+    int bestTime = -1; // -1 means no best time yet
+    int countdownSeconds = 60; // 60-second countdown
+    bool countdownExpired = false;
+
+    
+    sf::Text bestTimeText;
+    sf::Text countdownText;
+
+
     sf::RenderWindow window;
     Maze maze;
     int currentPos = 0;
@@ -145,8 +165,31 @@ private:
     sf::RectangleShape goalHighlight;
 
 public:
-    Game() : window(sf::VideoMode(CELL_WIDTH * SIZE + 60, CELL_WIDTH * SIZE + 60), "OOP Maze"),
-             maze(SIZE) {
+    Game() : window(sf::VideoMode(CELL_WIDTH* SIZE + 60, CELL_WIDTH* SIZE + 60), "OOP Maze"),
+        maze(SIZE) {
+
+		if (!font.loadFromFile("Data/Roboto.ttf")) {
+			std::cout << "Error loading font" << std::endl;
+		}
+
+        timerText.setFont(font);
+        timerText.setCharacterSize(20);
+        timerText.setFillColor(sf::Color::White);
+        timerText.setPosition(30, 5); // Position near top-left
+
+        bestTimeText.setFont(font);
+        bestTimeText.setCharacterSize(20);
+        bestTimeText.setFillColor(sf::Color::Yellow);
+        bestTimeText.setPosition(150, 5);
+
+        countdownText.setFont(font);
+        countdownText.setCharacterSize(20);
+        countdownText.setFillColor(sf::Color::Red);
+        countdownText.setPosition(300, 5);
+
+
+       
+
         window.setFramerateLimit(30);
         maze.getCell(currentPos).isActive = true;
 
@@ -199,7 +242,46 @@ private:
             maze.generateMaze();
             currentPos = 0;
             maze.getCell(currentPos).isActive = true;
+            clock.restart();
         }
+
+        elapsedTime = clock.getElapsedTime();
+        int seconds = static_cast<int>(elapsedTime.asSeconds());
+		int remainingTime = countdownSeconds - seconds;
+        timerText.setString("Time: " + std::to_string(seconds) + "s");
+
+
+        if (bestTime != -1)
+            bestTimeText.setString("Best: " + std::to_string(bestTime) + "s");
+        else
+            bestTimeText.setString("Best: --");
+
+        if (remainingTime >= 0)
+            countdownText.setString("Countdown: " + std::to_string(remainingTime) + "s");
+        else {
+            countdownText.setString("Time's up!");
+            countdownExpired = true;
+        }
+        if (currentPos == SIZE * SIZE - 1) {
+            int elapsed = static_cast<int>(clock.getElapsedTime().asSeconds());
+
+            if (bestTime == -1 || elapsed < bestTime)
+                bestTime = elapsed;
+
+            maze.generateMaze();
+            currentPos = 0;
+            clock.restart();
+            countdownExpired = false;
+            maze.getCell(currentPos).isActive = true;
+        }
+		if (countdownExpired) {
+			countdownText.setString("Time's up!");
+			countdownText.setFillColor(sf::Color::Red);
+		}
+		else {
+			countdownText.setFillColor(sf::Color::Red);
+		}
+
     }
 
     void render() {
@@ -209,6 +291,9 @@ private:
         window.draw(currentHighlight);
         goalHighlight.setPosition(maze.getCell(SIZE * SIZE - 1).x, maze.getCell(SIZE * SIZE - 1).y);
         window.draw(goalHighlight);
+		window.draw(timerText);
+        window.draw(bestTimeText);
+        window.draw(countdownText);
         window.display();
     }
 };
