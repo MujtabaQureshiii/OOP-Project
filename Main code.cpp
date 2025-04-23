@@ -5,7 +5,6 @@
 #include <iostream>
 using namespace std;
 
-#define SIZE 30
 #define CELL_WIDTH 20
 
 class Cell {
@@ -142,123 +141,147 @@ public:
 
 class Lobby {
 private:
-    sf::RenderWindow &window;
+    sf::RenderWindow& window;
     sf::Font font;
     sf::Text title;
     sf::Text start;
     sf::Text exit;
     bool startgame;
 
-
-            
-
 public:
+    Lobby(sf::RenderWindow& window) :window(window), startgame(false) {
+        if (!font.loadFromFile("Data/Roboto.ttf")) {
+            std::cout << "Error loading font" << std::endl;
+        }
 
-    Lobby(sf::RenderWindow &window):window(window) {
-        startgame = false;
-        cout << "Welcome to the Maze Game! " << endl;;
-        cout << "Use arrow keys or HJKL to navigate"<<endl;
-        cout << "Reach the bottom right corner to win! "<<endl;
+        title.setFont(font);
+        title.setString("Maze Game");
+        title.setCharacterSize(70);
+        title.setFillColor(sf::Color::White);
+        title.setPosition(window.getSize().x / 2 - title.getGlobalBounds().width / 2, 100);
 
+        start.setFont(font);
+        start.setString("Press Enter to Start");
+        start.setCharacterSize(30);
+        start.setFillColor(sf::Color::White);
+        start.setPosition(window.getSize().x / 2 - start.getGlobalBounds().width / 2, 300);
 
-		if (!font.loadFromFile("Data/Roboto.ttf")) {
-			std::cout << "Error loading font" << std::endl;
-		}
-		title.setFont(font);
-		title.setString("Maze Game");
-		title.setCharacterSize(50);
-		title.setFillColor(sf::Color::White);
-		title.setPosition(window.getSize().x/2 -title.getGlobalBounds().width/2,100);
+        exit.setFont(font);
+        exit.setString("Press Escape to Exit");
+        exit.setCharacterSize(30);
+        exit.setFillColor(sf::Color::White);
+        exit.setPosition(window.getSize().x / 2 - exit.getGlobalBounds().width / 2, 400);
+    }
 
-		start.setFont(font);
-		start.setString("Press Enter to Start");
-		start.setCharacterSize(30);
-		start.setFillColor(sf::Color::White);
-		start.setPosition(window.getSize().x/2-start.getGlobalBounds().width/2,300);
-
-		exit.setFont(font);
-		exit.setString("Press Escape to Exit");
-		exit.setCharacterSize(30);
-		exit.setFillColor(sf::Color::White);
-		exit.setPosition(window.getSize().x/2-exit.getGlobalBounds().width/2, 400);
-
-
-
-
-
-    }   
-	bool run() {
-
+    bool run() {
         while (window.isOpen()) {
             handlevent();
             render();
-            if (startgame) {
-			
-                return true;
-            }
-           
+            if (startgame) return true;
         }
         return false;
-	
-	}
+    }
 
-	void handlevent() {
-		sf::Event event;
-		while (window.pollEvent(event)) {
-			if (event.type == sf::Event::Closed)
-				window.close();
-			if (event.type == sf::Event::KeyPressed) {
-				if (event.key.code == sf::Keyboard::Enter) {
-					startgame = true;
-				}
-				else if (event.key.code == sf::Keyboard::Escape) {
-					window.close();
-				}
-			}
-		}
-	}
+    void handlevent() {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) window.close();
+            if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::Enter) startgame = true;
+                else if (event.key.code == sf::Keyboard::Escape) window.close();
+            }
+        }
+    }
 
     void render() {
-		window.clear(sf::Color(13, 2, 33));
-		window.draw(title);
-		window.draw(start);
-		window.draw(exit);
-		window.display();
+        window.clear(sf::Color(13, 2, 33));
+        window.draw(title);
+        window.draw(start);
+        window.draw(exit);
+        window.display();
+    }
+};
 
+class LevelSelector {
+private:
+    sf::RenderWindow& window;
+    sf::Font font;
+    sf::Text title, easy, medium, hard;
+    sf::FloatRect easyBounds, mediumBounds, hardBounds;
+
+public:
+    LevelSelector(sf::RenderWindow& window) : window(window) {
+        font.loadFromFile("Data/Roboto.ttf");
+
+        title.setFont(font);
+        title.setString("Select Difficulty");
+        title.setCharacterSize(40);
+        title.setFillColor(sf::Color::White);
+        title.setPosition(window.getSize().x / 2 - title.getGlobalBounds().width / 2, 100);
+
+        setupOption(easy, easyBounds, "EASY LEVEL", 200);
+        setupOption(medium, mediumBounds, "MEDIUM LEVEL", 270);
+        setupOption(hard, hardBounds, "HARD LEVEL", 340);
+    }
+
+    void setupOption(sf::Text& text, sf::FloatRect& bounds, const std::string& str, float y) {
+        text.setFont(font);
+        text.setString(str);
+        text.setCharacterSize(30);
+        text.setFillColor(sf::Color::White);
+        text.setPosition(window.getSize().x / 2 - text.getGlobalBounds().width / 2, y);
+        bounds = text.getGlobalBounds();
+    }
+
+    int run() {
+        while (window.isOpen()) {
+            sf::Event event;
+            while (window.pollEvent(event)) {
+                if (event.type == sf::Event::Closed)
+                    window.close();
+
+                if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+                    sf::Vector2f mousePos(sf::Mouse::getPosition(window));
+                    if (easyBounds.contains(mousePos)) return 15;
+                    if (mediumBounds.contains(mousePos)) return 25;
+                    if (hardBounds.contains(mousePos)) return 35;
+                }
+            }
+
+            window.clear(sf::Color(13, 2, 33));
+            window.draw(title);
+            window.draw(easy);
+            window.draw(medium);
+            window.draw(hard);
+            window.display();
+        }
+        return 0;
     }
 };
 
 class Game {
 private:
     sf::Clock clock;
-    sf::Time elapsedTime;
     sf::Font font;
-    sf::Text timerText;
-    sf::Clock freezeClock;
+    sf::Text timerText, bestTimeText, countdownText, gameOverText;
 
-    int bestTime = -1;
-    int countdownSeconds = 60;
-    bool countdownExpired = false;
-    bool showingGameOver = false;
-
-    sf::Text bestTimeText;
-    sf::Text countdownText;
-    sf::Text gameOverText;
-
-    sf::RenderWindow &window;
+    sf::RenderWindow& window;
     Maze maze;
     int currentPos = 0;
+    int bestTime = -1;
+    int countdownSeconds = 60;
+    bool showingGameOver = false;
+    sf::Clock freezeClock;
 
-    sf::RectangleShape currentHighlight;
-    sf::RectangleShape goalHighlight;
+    sf::RectangleShape currentHighlight, goalHighlight;
 
 public:
-    Game(sf::RenderWindow &win) : window(win),
-        maze(SIZE) {
+    Game(sf::RenderWindow& win, int mazeSize) : window(win), maze(mazeSize) {
+        font.loadFromFile("Data/Roboto.ttf");
 
-        if (!font.loadFromFile("Data/Roboto.ttf")) {
-            std::cout << "Error loading font" << std::endl;
-        }
+        setupText(timerText, 30, 5, sf::Color::White);
+        setupText(bestTimeText, 150, 5, sf::Color::Yellow);
+        setupText(countdownText, 300, 5, sf::Color::Red);
 
         gameOverText.setFont(font);
         gameOverText.setString("Game Over");
@@ -267,22 +290,6 @@ public:
         gameOverText.setStyle(sf::Text::Bold);
         gameOverText.setPosition(200, 200);
 
-        timerText.setFont(font);
-        timerText.setCharacterSize(20);
-        timerText.setFillColor(sf::Color::White);
-        timerText.setPosition(30, 5);
-
-        bestTimeText.setFont(font);
-        bestTimeText.setCharacterSize(20);
-        bestTimeText.setFillColor(sf::Color::Yellow);
-        bestTimeText.setPosition(150, 5);
-
-        countdownText.setFont(font);
-        countdownText.setCharacterSize(20);
-        countdownText.setFillColor(sf::Color::Red);
-        countdownText.setPosition(300, 5);
-
-       
         maze.getCell(currentPos).isActive = true;
 
         currentHighlight.setSize({ CELL_WIDTH, CELL_WIDTH });
@@ -290,6 +297,13 @@ public:
 
         goalHighlight.setSize({ CELL_WIDTH, CELL_WIDTH });
         goalHighlight.setFillColor(sf::Color(0, 128, 0));
+    }
+
+    void setupText(sf::Text& text, float x, float y, sf::Color color) {
+        text.setFont(font);
+        text.setCharacterSize(20);
+        text.setFillColor(color);
+        text.setPosition(x, y);
     }
 
     void run() {
@@ -304,11 +318,8 @@ private:
     void handleEvents() {
         sf::Event event;
         while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed)
-                window.close();
-
-            if (event.type == sf::Event::KeyPressed && !showingGameOver)
-                handleMovement(event.key.code);
+            if (event.type == sf::Event::Closed) window.close();
+            if (event.type == sf::Event::KeyPressed && !showingGameOver) handleMovement(event.key.code);
         }
     }
 
@@ -331,37 +342,24 @@ private:
 
     void update() {
         if (showingGameOver) {
-            if (freezeClock.getElapsedTime().asSeconds() > 3.0f) {
-                restartGame();
-            }
+            if (freezeClock.getElapsedTime().asSeconds() > 3.0f) restartGame();
             return;
         }
 
-        if (currentPos == SIZE * SIZE - 1) {
+        if (currentPos == maze.getSize() * maze.getSize() - 1) {
             int elapsed = static_cast<int>(clock.getElapsedTime().asSeconds());
-
-            if (bestTime == -1 || elapsed < bestTime)
-                bestTime = elapsed;
-
+            if (bestTime == -1 || elapsed < bestTime) bestTime = elapsed;
             restartGame();
         }
 
-        elapsedTime = clock.getElapsedTime();
-        int seconds = static_cast<int>(elapsedTime.asSeconds());
-        int remainingTime = countdownSeconds - seconds;
+        int seconds = static_cast<int>(clock.getElapsedTime().asSeconds());
+        int remaining = countdownSeconds - seconds;
 
         timerText.setString("Time: " + std::to_string(seconds) + "s");
+        bestTimeText.setString("Best: " + (bestTime != -1 ? std::to_string(bestTime) + "s" : "--"));
+        countdownText.setString(remaining >= 0 ? "Countdown: " + std::to_string(remaining) + "s" : "Time's up!");
 
-        if (bestTime != -1)
-            bestTimeText.setString("Best: " + std::to_string(bestTime) + "s");
-        else
-            bestTimeText.setString("Best: --");
-
-        if (remainingTime >= 0)
-            countdownText.setString("Countdown: " + std::to_string(remainingTime) + "s");
-        else {
-            countdownText.setString("Time's up!");
-            countdownExpired = true;
+        if (remaining < 0 && !showingGameOver) {
             showingGameOver = true;
             freezeClock.restart();
         }
@@ -374,16 +372,14 @@ private:
         currentHighlight.setPosition(maze.getCell(currentPos).x, maze.getCell(currentPos).y);
         window.draw(currentHighlight);
 
-        goalHighlight.setPosition(maze.getCell(SIZE * SIZE - 1).x, maze.getCell(SIZE * SIZE - 1).y);
+        goalHighlight.setPosition(maze.getCell(maze.getSize() * maze.getSize() - 1).x,
+            maze.getCell(maze.getSize() * maze.getSize() - 1).y);
         window.draw(goalHighlight);
 
         window.draw(timerText);
         window.draw(bestTimeText);
         window.draw(countdownText);
-
-        if (showingGameOver) {
-            window.draw(gameOverText);
-        }
+        if (showingGameOver) window.draw(gameOverText);
 
         window.display();
     }
@@ -393,20 +389,22 @@ private:
         currentPos = 0;
         maze.getCell(currentPos).isActive = true;
         clock.restart();
-        countdownExpired = false;
         showingGameOver = false;
     }
 };
 
-int main() {  
-sf::RenderWindow window(sf::VideoMode(CELL_WIDTH * SIZE + 60, CELL_WIDTH * SIZE + 60), "Maze Game");  
-   window.setFramerateLimit(60);  
-Lobby lobby(window);  
-if (lobby.run()) { 
-	Game game(window);  
-	game.run();  
-}  
-else {  
-	return 0;  
-}  
+int main() {
+    sf::RenderWindow window(sf::VideoMode(1280, 800), "Maze Game");
+    window.setFramerateLimit(60);
+
+    Lobby lobby(window);
+    if (lobby.run()) {
+        LevelSelector selector(window);
+        int size = selector.run();
+        if (size > 0) {
+            Game game(window, size);
+            game.run();
+        }
+    }
+    return 0;
 }
