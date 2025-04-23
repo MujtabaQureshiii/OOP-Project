@@ -156,8 +156,8 @@ public:
 
         title.setFont(font);
         title.setString("Maze Game");
-        title.setCharacterSize(70);
-        title.setFillColor(sf::Color::White);
+        title.setCharacterSize(80);
+        title.setFillColor(sf::Color::Yellow);
         title.setPosition(window.getSize().x / 2 - title.getGlobalBounds().width / 2, 100);
 
         start.setFont(font);
@@ -215,8 +215,8 @@ public:
 
         title.setFont(font);
         title.setString("Select Difficulty");
-        title.setCharacterSize(40);
-        title.setFillColor(sf::Color::White);
+        title.setCharacterSize(70);
+        title.setFillColor(sf::Color::Yellow);
         title.setPosition(window.getSize().x / 2 - title.getGlobalBounds().width / 2, 100);
 
         setupOption(easy, easyBounds, "EASY LEVEL", 200);
@@ -258,6 +258,111 @@ public:
         return 0;
     }
 };
+class GameOverScreen {
+private:
+    sf::RenderWindow& window;
+    sf::Font font;
+    sf::Text title, playAgain, exit;
+    sf::FloatRect playAgainBounds, exitBounds;
+
+public:
+    GameOverScreen(sf::RenderWindow& window) : window(window) {
+        font.loadFromFile("Data/Roboto.ttf");
+
+        title.setFont(font);
+        title.setString("Game Over");
+        title.setCharacterSize(60);
+        title.setFillColor(sf::Color::Red);
+        title.setPosition(window.getSize().x / 2 - title.getGlobalBounds().width / 2, 100);
+
+        setupOption(playAgain, playAgainBounds, "Play Again", 200);
+        setupOption(exit, exitBounds, "Exit", 270);
+    }
+
+    void setupOption(sf::Text& text, sf::FloatRect& bounds, const std::string& str, float y) {
+        text.setFont(font);
+        text.setString(str);
+        text.setCharacterSize(30);
+        text.setFillColor(sf::Color::White);
+        text.setPosition(window.getSize().x / 2 - text.getGlobalBounds().width / 2, y);
+        bounds = text.getGlobalBounds();
+    }
+
+    int run() {
+        while (window.isOpen()) {
+            sf::Event event;
+            while (window.pollEvent(event)) {
+                if (event.type == sf::Event::Closed) window.close();
+                if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+                    sf::Vector2f mousePos(sf::Mouse::getPosition(window));
+                    if (playAgainBounds.contains(mousePos)) return 1;  // Play Again
+                    if (exitBounds.contains(mousePos)) return -1;      // Exit
+                }
+            }
+
+            window.clear(sf::Color(13, 2, 33));
+            window.draw(title);
+            window.draw(playAgain);
+            window.draw(exit);
+            window.display();
+        }
+        return 0;
+    }
+};
+
+
+class CongratulationsScreen {
+private:
+    sf::RenderWindow& window;
+    sf::Font font;
+    sf::Text title, playAgain, exit;
+    sf::FloatRect playAgainBounds, exitBounds;
+
+public:
+    CongratulationsScreen(sf::RenderWindow& window) : window(window) {
+        font.loadFromFile("Data/Roboto.ttf");
+
+        title.setFont(font);
+        title.setString("Congratulations!");
+        title.setCharacterSize(60);
+        title.setFillColor(sf::Color::Green);
+        title.setPosition(window.getSize().x / 2 - title.getGlobalBounds().width / 2, 100);
+
+        setupOption(playAgain, playAgainBounds, "Play Again", 200);
+        setupOption(exit, exitBounds, "Exit", 270);
+    }
+
+    void setupOption(sf::Text& text, sf::FloatRect& bounds, const std::string& str, float y) {
+        text.setFont(font);
+        text.setString(str);
+        text.setCharacterSize(30);
+        text.setFillColor(sf::Color::White);
+        text.setPosition(window.getSize().x / 2 - text.getGlobalBounds().width / 2, y);
+        bounds = text.getGlobalBounds();
+    }
+
+    int run() {
+        while (window.isOpen()) {
+            sf::Event event;
+            while (window.pollEvent(event)) {
+                if (event.type == sf::Event::Closed) window.close();
+                if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+                    sf::Vector2f mousePos(sf::Mouse::getPosition(window));
+                    if (playAgainBounds.contains(mousePos)) return 1;  // Play Again
+                    if (exitBounds.contains(mousePos)) return -1;      // Exit
+                }
+            }
+
+            window.clear(sf::Color(13, 2, 33));
+            window.draw(title);
+            window.draw(playAgain);
+            window.draw(exit);
+            window.display();
+        }
+        return 0;
+    }
+};
+
 
 class Game {
 private:
@@ -349,7 +454,12 @@ private:
         if (currentPos == maze.getSize() * maze.getSize() - 1) {
             int elapsed = static_cast<int>(clock.getElapsedTime().asSeconds());
             if (bestTime == -1 || elapsed < bestTime) bestTime = elapsed;
-            restartGame();
+
+            // Show Congratulations screen
+            CongratulationsScreen congratsScreen(window);
+            int result = congratsScreen.run();
+            if (result == 1) restartGame(); // Play Again
+            else if (result == -1) window.close(); // Exit
         }
 
         int seconds = static_cast<int>(clock.getElapsedTime().asSeconds());
@@ -362,6 +472,12 @@ private:
         if (remaining < 0 && !showingGameOver) {
             showingGameOver = true;
             freezeClock.restart();
+
+            // Show Game Over screen
+            GameOverScreen gameOverScreen(window);
+            int result = gameOverScreen.run();
+            if (result == 1) restartGame(); // Play Again
+            else if (result == -1) window.close(); // Exit
         }
     }
 
