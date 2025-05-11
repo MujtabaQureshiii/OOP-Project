@@ -144,12 +144,18 @@ private:
     sf::RenderWindow& window;
     sf::Font font;
     sf::Text title;
-    sf::Text start;
-    sf::Text exit;
+    sf::Text startText;
+    sf::Text exitText;
+    sf::RectangleShape startButton;
+    sf::RectangleShape exitButton;
     bool startgame;
+    
+    // Hover state tracking
+    bool startHovered;
+    bool exitHovered;
 
 public:
-    Lobby(sf::RenderWindow& window) :window(window), startgame(false) {
+    Lobby(sf::RenderWindow& window) :window(window), startgame(false), startHovered(false), exitHovered(false) {
         if (!font.loadFromFile("Data/Roboto.ttf")) {
             std::cout << "Error loading font" << std::endl;
         }
@@ -160,17 +166,44 @@ public:
         title.setFillColor(sf::Color::Yellow);
         title.setPosition(window.getSize().x / 2 - title.getGlobalBounds().width / 2, 100);
 
-        start.setFont(font);
-        start.setString("Press Enter to Start");
-        start.setCharacterSize(30);
-        start.setFillColor(sf::Color::White);
-        start.setPosition(window.getSize().x / 2 - start.getGlobalBounds().width / 2, 300);
-
-        exit.setFont(font);
-        exit.setString("Press Escape to Exit");
-        exit.setCharacterSize(30);
-        exit.setFillColor(sf::Color::White);
-        exit.setPosition(window.getSize().x / 2 - exit.getGlobalBounds().width / 2, 400);
+        // Start button setup
+        startText.setFont(font);
+        startText.setString("Press Enter to Start");
+        startText.setCharacterSize(30);
+        startText.setFillColor(sf::Color::White);
+        
+        // Exit button setup
+        exitText.setFont(font);
+        exitText.setString("Press Escape to Exit");
+        exitText.setCharacterSize(30);
+        exitText.setFillColor(sf::Color::White);
+        
+        // Create button rectangles
+        const float padding = 20.0f;
+        startButton.setSize({startText.getGlobalBounds().width + padding * 2, startText.getGlobalBounds().height + padding * 2});
+        startButton.setFillColor(sf::Color(50, 50, 100));
+        startButton.setOutlineThickness(2);
+        startButton.setOutlineColor(sf::Color(100, 100, 200));
+        
+        exitButton.setSize({exitText.getGlobalBounds().width + padding * 2, exitText.getGlobalBounds().height + padding * 2});
+        exitButton.setFillColor(sf::Color(100, 50, 50));
+        exitButton.setOutlineThickness(2);
+        exitButton.setOutlineColor(sf::Color(200, 100, 100));
+        
+        // Position the buttons
+        startButton.setPosition(window.getSize().x / 2 - startButton.getSize().x / 2, 300);
+        exitButton.setPosition(window.getSize().x / 2 - exitButton.getSize().x / 2, 400);
+        
+        // Position the text in the middle of the buttons
+        startText.setPosition(
+            startButton.getPosition().x + (startButton.getSize().x - startText.getGlobalBounds().width) / 2,
+            startButton.getPosition().y + (startButton.getSize().y - startText.getGlobalBounds().height) / 2 - 15
+        );
+        
+        exitText.setPosition(
+            exitButton.getPosition().x + (exitButton.getSize().x - exitText.getGlobalBounds().width) / 2,
+            exitButton.getPosition().y + (exitButton.getSize().y - exitText.getGlobalBounds().height) / 2 - 15
+        );
     }
 
     bool run() {
@@ -190,14 +223,34 @@ public:
                 if (event.key.code == sf::Keyboard::Enter) startgame = true;
                 else if (event.key.code == sf::Keyboard::Escape) window.close();
             }
+            
+            // Handle mouse movement for hover effects
+            if (event.type == sf::Event::MouseMoved) {
+                sf::Vector2f mousePos(event.mouseMove.x, event.mouseMove.y);
+                startHovered = startButton.getGlobalBounds().contains(mousePos);
+                exitHovered = exitButton.getGlobalBounds().contains(mousePos);
+            }
+            
+            // Handle mouse clicks on buttons
+            if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+                sf::Vector2f mousePos(event.mouseButton.x, event.mouseButton.y);
+                if (startButton.getGlobalBounds().contains(mousePos)) startgame = true;
+                if (exitButton.getGlobalBounds().contains(mousePos)) window.close();
+            }
         }
+        
+        // Update button colors based on hover status
+        startButton.setFillColor(startHovered ? sf::Color(80, 80, 180) : sf::Color(50, 50, 100));
+        exitButton.setFillColor(exitHovered ? sf::Color(180, 80, 80) : sf::Color(100, 50, 50));
     }
 
     void render() {
         window.clear(sf::Color(13, 2, 33));
         window.draw(title);
-        window.draw(start);
-        window.draw(exit);
+        window.draw(startButton);
+        window.draw(exitButton);
+        window.draw(startText);
+        window.draw(exitText);
         window.display();
     }
 };
@@ -206,11 +259,12 @@ class LevelSelector {
 private:
     sf::RenderWindow& window;
     sf::Font font;
-    sf::Text title, easy, medium, hard;
-    sf::FloatRect easyBounds, mediumBounds, hardBounds;
+    sf::Text title, easyText, mediumText, hardText;
+    sf::RectangleShape easyButton, mediumButton, hardButton;
+    bool easyHovered, mediumHovered, hardHovered;
 
 public:
-    LevelSelector(sf::RenderWindow& window) : window(window) {
+    LevelSelector(sf::RenderWindow& window) : window(window), easyHovered(false), mediumHovered(false), hardHovered(false) {
         font.loadFromFile("Data/Roboto.ttf");
 
         title.setFont(font);
@@ -219,18 +273,35 @@ public:
         title.setFillColor(sf::Color::Yellow);
         title.setPosition(window.getSize().x / 2 - title.getGlobalBounds().width / 2, 100);
 
-        setupOption(easy, easyBounds, "EASY LEVEL", 200);
-        setupOption(medium, mediumBounds, "MEDIUM LEVEL", 270);
-        setupOption(hard, hardBounds, "HARD LEVEL", 340);
+        // Setup text and buttons
+        setupOption(easyText, easyButton, "EASY LEVEL", 200, sf::Color(0, 100, 0));
+        setupOption(mediumText, mediumButton, "MEDIUM LEVEL", 290, sf::Color(100, 100, 0));
+        setupOption(hardText, hardButton, "HARD LEVEL", 380, sf::Color(100, 0, 0));
     }
 
-    void setupOption(sf::Text& text, sf::FloatRect& bounds, const std::string& str, float y) {
+    void setupOption(sf::Text& text, sf::RectangleShape& button, const std::string& str, float y, sf::Color baseColor) {
+        // Set up text
         text.setFont(font);
         text.setString(str);
         text.setCharacterSize(30);
         text.setFillColor(sf::Color::White);
-        text.setPosition(window.getSize().x / 2 - text.getGlobalBounds().width / 2, y);
-        bounds = text.getGlobalBounds();
+        
+        // Create button with padding
+        const float padding = 20.0f;
+        text.setPosition(0, 0); // Temporary position to get bounds
+        sf::FloatRect textBounds = text.getGlobalBounds();
+        
+        button.setSize({textBounds.width + padding * 2, textBounds.height + padding * 2});
+        button.setFillColor(baseColor);
+        button.setOutlineThickness(2);
+        button.setOutlineColor(sf::Color(baseColor.r + 50, baseColor.g + 50, baseColor.b + 50));
+        button.setPosition(window.getSize().x / 2 - button.getSize().x / 2, y);
+        
+        // Position text in the middle of button
+        text.setPosition(
+            button.getPosition().x + (button.getSize().x - textBounds.width) / 2,
+            button.getPosition().y + (button.getSize().y - textBounds.height) / 2 - 15
+        );
     }
 
     int run() {
@@ -240,19 +311,35 @@ public:
                 if (event.type == sf::Event::Closed)
                     window.close();
 
+                // Check for mouse hovering over buttons
+                if (event.type == sf::Event::MouseMoved) {
+                    sf::Vector2f mousePos(event.mouseMove.x, event.mouseMove.y);
+                    easyHovered = easyButton.getGlobalBounds().contains(mousePos);
+                    mediumHovered = mediumButton.getGlobalBounds().contains(mousePos);
+                    hardHovered = hardButton.getGlobalBounds().contains(mousePos);
+                    
+                    // Update button colors based on hover state
+                    easyButton.setFillColor(easyHovered ? sf::Color(0, 150, 0) : sf::Color(0, 100, 0));
+                    mediumButton.setFillColor(mediumHovered ? sf::Color(150, 150, 0) : sf::Color(100, 100, 0));
+                    hardButton.setFillColor(hardHovered ? sf::Color(150, 0, 0) : sf::Color(100, 0, 0));
+                }
+
                 if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
-                    sf::Vector2f mousePos(sf::Mouse::getPosition(window));
-                    if (easyBounds.contains(mousePos)) return 15;
-                    if (mediumBounds.contains(mousePos)) return 25;
-                    if (hardBounds.contains(mousePos)) return 35;
+                    sf::Vector2f mousePos(event.mouseButton.x, event.mouseButton.y);
+                    if (easyButton.getGlobalBounds().contains(mousePos)) return 15;
+                    if (mediumButton.getGlobalBounds().contains(mousePos)) return 25;
+                    if (hardButton.getGlobalBounds().contains(mousePos)) return 35;
                 }
             }
 
             window.clear(sf::Color(13, 2, 33));
             window.draw(title);
-            window.draw(easy);
-            window.draw(medium);
-            window.draw(hard);
+            window.draw(easyButton);
+            window.draw(mediumButton);
+            window.draw(hardButton);
+            window.draw(easyText);
+            window.draw(mediumText);
+            window.draw(hardText);
             window.display();
         }
         return 0;
@@ -262,11 +349,12 @@ class GameOverScreen {
 private:
     sf::RenderWindow& window;
     sf::Font font;
-    sf::Text title, playAgain, exit;
-    sf::FloatRect playAgainBounds, exitBounds;
+    sf::Text title, playAgainText, exitText;
+    sf::RectangleShape playAgainButton, exitButton;
+    bool playAgainHovered, exitHovered;
 
 public:
-    GameOverScreen(sf::RenderWindow& window) : window(window) {
+    GameOverScreen(sf::RenderWindow& window) : window(window), playAgainHovered(false), exitHovered(false) {
         font.loadFromFile("Data/Roboto.ttf");
 
         title.setFont(font);
@@ -275,17 +363,33 @@ public:
         title.setFillColor(sf::Color::Red);
         title.setPosition(window.getSize().x / 2 - title.getGlobalBounds().width / 2, 100);
 
-        setupOption(playAgain, playAgainBounds, "Play Again", 200);
-        setupOption(exit, exitBounds, "Exit", 270);
+        setupOption(playAgainText, playAgainButton, "Play Again", 200, sf::Color(0, 100, 0));
+        setupOption(exitText, exitButton, "Exit", 280, sf::Color(100, 50, 50));
     }
 
-    void setupOption(sf::Text& text, sf::FloatRect& bounds, const std::string& str, float y) {
+    void setupOption(sf::Text& text, sf::RectangleShape& button, const std::string& str, float y, sf::Color baseColor) {
+        // Set up text
         text.setFont(font);
         text.setString(str);
         text.setCharacterSize(30);
         text.setFillColor(sf::Color::White);
-        text.setPosition(window.getSize().x / 2 - text.getGlobalBounds().width / 2, y);
-        bounds = text.getGlobalBounds();
+        
+        // Create button with padding
+        const float padding = 20.0f;
+        text.setPosition(0, 0); // Temporary position to get bounds
+        sf::FloatRect textBounds = text.getGlobalBounds();
+        
+        button.setSize({textBounds.width + padding * 2, textBounds.height + padding * 2});
+        button.setFillColor(baseColor);
+        button.setOutlineThickness(2);
+        button.setOutlineColor(sf::Color(baseColor.r + 50, baseColor.g + 50, baseColor.b + 50));
+        button.setPosition(window.getSize().x / 2 - button.getSize().x / 2, y);
+        
+        // Position text in the middle of button
+        text.setPosition(
+            button.getPosition().x + (button.getSize().x - textBounds.width) / 2,
+            button.getPosition().y + (button.getSize().y - textBounds.height) / 2 - 15
+        );
     }
 
     int run() {
@@ -293,17 +397,31 @@ public:
             sf::Event event;
             while (window.pollEvent(event)) {
                 if (event.type == sf::Event::Closed) window.close();
+                
+                // Check for mouse hovering over buttons
+                if (event.type == sf::Event::MouseMoved) {
+                    sf::Vector2f mousePos(event.mouseMove.x, event.mouseMove.y);
+                    playAgainHovered = playAgainButton.getGlobalBounds().contains(mousePos);
+                    exitHovered = exitButton.getGlobalBounds().contains(mousePos);
+                    
+                    // Update button colors based on hover state
+                    playAgainButton.setFillColor(playAgainHovered ? sf::Color(0, 150, 0) : sf::Color(0, 100, 0));
+                    exitButton.setFillColor(exitHovered ? sf::Color(150, 50, 50) : sf::Color(100, 50, 50));
+                }
+                
                 if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
-                    sf::Vector2f mousePos(sf::Mouse::getPosition(window));
-                    if (playAgainBounds.contains(mousePos)) return 1;  // Play Again
-                    if (exitBounds.contains(mousePos)) return -1;      // Exit
+                    sf::Vector2f mousePos(event.mouseButton.x, event.mouseButton.y);
+                    if (playAgainButton.getGlobalBounds().contains(mousePos)) return 1;  // Play Again
+                    if (exitButton.getGlobalBounds().contains(mousePos)) return -1;      // Exit
                 }
             }
 
             window.clear(sf::Color(13, 2, 33));
             window.draw(title);
-            window.draw(playAgain);
-            window.draw(exit);
+            window.draw(playAgainButton);
+            window.draw(exitButton);
+            window.draw(playAgainText);
+            window.draw(exitText);
             window.display();
         }
         return 0;
@@ -315,11 +433,12 @@ class CongratulationsScreen {
 private:
     sf::RenderWindow& window;
     sf::Font font;
-    sf::Text title, playAgain, exit;
-    sf::FloatRect playAgainBounds, exitBounds;
+    sf::Text title, playAgainText, exitText;
+    sf::RectangleShape playAgainButton, exitButton;
+    bool playAgainHovered, exitHovered;
 
 public:
-    CongratulationsScreen(sf::RenderWindow& window) : window(window) {
+    CongratulationsScreen(sf::RenderWindow& window) : window(window), playAgainHovered(false), exitHovered(false) {
         font.loadFromFile("Data/Roboto.ttf");
 
         title.setFont(font);
@@ -328,17 +447,33 @@ public:
         title.setFillColor(sf::Color::Green);
         title.setPosition(window.getSize().x / 2 - title.getGlobalBounds().width / 2, 100);
 
-        setupOption(playAgain, playAgainBounds, "Play Again", 200);
-        setupOption(exit, exitBounds, "Exit", 270);
+        setupOption(playAgainText, playAgainButton, "Play Again", 200, sf::Color(0, 100, 0));
+        setupOption(exitText, exitButton, "Exit", 280, sf::Color(100, 50, 50));
     }
 
-    void setupOption(sf::Text& text, sf::FloatRect& bounds, const std::string& str, float y) {
+    void setupOption(sf::Text& text, sf::RectangleShape& button, const std::string& str, float y, sf::Color baseColor) {
+        // Set up text
         text.setFont(font);
         text.setString(str);
         text.setCharacterSize(30);
         text.setFillColor(sf::Color::White);
-        text.setPosition(window.getSize().x / 2 - text.getGlobalBounds().width / 2, y);
-        bounds = text.getGlobalBounds();
+        
+        // Create button with padding
+        const float padding = 20.0f;
+        text.setPosition(0, 0); // Temporary position to get bounds
+        sf::FloatRect textBounds = text.getGlobalBounds();
+        
+        button.setSize({textBounds.width + padding * 2, textBounds.height + padding * 2});
+        button.setFillColor(baseColor);
+        button.setOutlineThickness(2);
+        button.setOutlineColor(sf::Color(baseColor.r + 50, baseColor.g + 50, baseColor.b + 50));
+        button.setPosition(window.getSize().x / 2 - button.getSize().x / 2, y);
+        
+        // Position text in the middle of button
+        text.setPosition(
+            button.getPosition().x + (button.getSize().x - textBounds.width) / 2,
+            button.getPosition().y + (button.getSize().y - textBounds.height) / 2 - 15
+        );
     }
 
     int run() {
@@ -346,17 +481,31 @@ public:
             sf::Event event;
             while (window.pollEvent(event)) {
                 if (event.type == sf::Event::Closed) window.close();
+                
+                // Check for mouse hovering over buttons
+                if (event.type == sf::Event::MouseMoved) {
+                    sf::Vector2f mousePos(event.mouseMove.x, event.mouseMove.y);
+                    playAgainHovered = playAgainButton.getGlobalBounds().contains(mousePos);
+                    exitHovered = exitButton.getGlobalBounds().contains(mousePos);
+                    
+                    // Update button colors based on hover state
+                    playAgainButton.setFillColor(playAgainHovered ? sf::Color(0, 150, 0) : sf::Color(0, 100, 0));
+                    exitButton.setFillColor(exitHovered ? sf::Color(150, 50, 50) : sf::Color(100, 50, 50));
+                }
+                
                 if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
-                    sf::Vector2f mousePos(sf::Mouse::getPosition(window));
-                    if (playAgainBounds.contains(mousePos)) return 1;  // Play Again
-                    if (exitBounds.contains(mousePos)) return -1;      // Exit
+                    sf::Vector2f mousePos(event.mouseButton.x, event.mouseButton.y);
+                    if (playAgainButton.getGlobalBounds().contains(mousePos)) return 1;  // Play Again
+                    if (exitButton.getGlobalBounds().contains(mousePos)) return -1;      // Exit
                 }
             }
 
             window.clear(sf::Color(13, 2, 33));
             window.draw(title);
-            window.draw(playAgain);
-            window.draw(exit);
+            window.draw(playAgainButton);
+            window.draw(exitButton);
+            window.draw(playAgainText);
+            window.draw(exitText);
             window.display();
         }
         return 0;
@@ -374,15 +523,17 @@ private:
     Maze maze;
     int currentPos = 0;
     int bestTime = -1;
-    int countdownSeconds = 60;
+    int countdownSeconds;
     bool showingGameOver = false;
     sf::Clock freezeClock;
+    int mazesize;
 
     sf::RectangleShape currentHighlight, goalHighlight;
 
 public:
-    Game(sf::RenderWindow& win, int mazeSize) : window(win), maze(mazeSize) {
+    Game(sf::RenderWindow& win, int mazeSize) : window(win), maze(mazeSize),mazesize(mazesize) {
         font.loadFromFile("Data/Roboto.ttf");
+       
 
         setupText(timerText, 30, 5, sf::Color::White);
         setupText(bestTimeText, 150, 5, sf::Color::Yellow);
@@ -402,6 +553,15 @@ public:
 
         goalHighlight.setSize({ CELL_WIDTH, CELL_WIDTH });
         goalHighlight.setFillColor(sf::Color(0, 128, 0));
+		if (this->mazesize == 15) {
+			countdownSeconds = 60;
+		}
+		else if (this->mazesize == 25) {
+			countdownSeconds = 90;
+		}
+		else {
+			countdownSeconds = 120;
+		}
     }
 
     void setupText(sf::Text& text, float x, float y, sf::Color color) {
@@ -443,6 +603,16 @@ private:
             currentPos = next;
             maze.getCell(currentPos).isActive = true;
         }
+
+		if (key == sf::Keyboard::Escape) {
+			showingGameOver = true;
+			freezeClock.restart();
+			GameOverScreen gameOverScreen(window);
+			int result = gameOverScreen.run();
+			if (result == 1) restartGame(); // Play Again
+			else if (result == -1) window.close(); // Exit
+		}
+
     }
 
     void update() {
@@ -510,7 +680,7 @@ private:
 };
 
 int main() {
-    sf::RenderWindow window(sf::VideoMode(1280, 800), "Maze Game");
+    sf::RenderWindow window(sf::VideoMode(1000, 800), "Maze Game");
     window.setFramerateLimit(60);
 
     Lobby lobby(window);
