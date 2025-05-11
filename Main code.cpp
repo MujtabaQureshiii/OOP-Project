@@ -389,9 +389,14 @@ private:
     sf::Text title, easyText, mediumText, hardText;
     sf::RectangleShape easyButton, mediumButton, hardButton;
     bool easyHovered, mediumHovered, hardHovered;
+    MazeAnimation mazeAnimation1;
+    MazeAnimation mazeAnimation2;
+    MazeAnimation mazeAnimation3;
 
 public:
-    LevelSelector(sf::RenderWindow& window) : window(window), easyHovered(false), mediumHovered(false), hardHovered(false) {
+    LevelSelector(sf::RenderWindow& window) : window(window), easyHovered(false), mediumHovered(false), hardHovered(false), mazeAnimation1(200, 350),
+        mazeAnimation2(window.getSize().x - 200, 250),
+        mazeAnimation3(window.getSize().x / 2, 550) {
         font.loadFromFile("Data/Roboto.ttf");
 
         title.setFont(font);
@@ -458,8 +463,16 @@ public:
                     if (hardButton.getGlobalBounds().contains(mousePos)) return 35;
                 }
             }
+            mazeAnimation1.update();
+            mazeAnimation2.update();
+            mazeAnimation3.update();
 
             window.clear(sf::Color(13, 2, 33));
+            mazeAnimation1.draw(window);
+            mazeAnimation2.draw(window);
+            mazeAnimation3.draw(window);
+
+            
             window.draw(title);
             window.draw(easyButton);
             window.draw(mediumButton);
@@ -479,9 +492,14 @@ private:
     sf::Text title, playAgainText, exitText;
     sf::RectangleShape playAgainButton, exitButton;
     bool playAgainHovered, exitHovered;
+    MazeAnimation mazeAnimation1;
+    MazeAnimation mazeAnimation2;
+    MazeAnimation mazeAnimation3;
 
 public:
-    GameOverScreen(sf::RenderWindow& window) : window(window), playAgainHovered(false), exitHovered(false) {
+    GameOverScreen(sf::RenderWindow& window) : window(window), playAgainHovered(false), exitHovered(false), mazeAnimation1(200, 350),
+        mazeAnimation2(window.getSize().x - 200, 250),
+        mazeAnimation3(window.getSize().x / 2, 550) {
         font.loadFromFile("Data/Roboto.ttf");
 
         title.setFont(font);
@@ -542,8 +560,17 @@ public:
                     if (exitButton.getGlobalBounds().contains(mousePos)) return -1;      // Exit
                 }
             }
+            mazeAnimation1.update();
+            mazeAnimation2.update();
+            mazeAnimation3.update();
+
+
 
             window.clear(sf::Color(13, 2, 33));
+           
+            mazeAnimation1.draw(window);
+            mazeAnimation2.draw(window);
+            mazeAnimation3.draw(window);
             window.draw(title);
             window.draw(playAgainButton);
             window.draw(exitButton);
@@ -563,9 +590,12 @@ private:
     sf::Text title, playAgainText, exitText;
     sf::RectangleShape playAgainButton, exitButton;
     bool playAgainHovered, exitHovered;
+    MazeAnimation maze1, maze2, maze3;
 
 public:
-    CongratulationsScreen(sf::RenderWindow& window) : window(window), playAgainHovered(false), exitHovered(false) {
+    CongratulationsScreen(sf::RenderWindow& window) : window(window), playAgainHovered(false),  maze1(200, 350),
+        maze2(window.getSize().x - 200, 250),
+        maze3(window.getSize().x / 2, 550) {
         font.loadFromFile("Data/Roboto.ttf");
 
         title.setFont(font);
@@ -626,8 +656,14 @@ public:
                     if (exitButton.getGlobalBounds().contains(mousePos)) return -1;      // Exit
                 }
             }
+            maze1.update();
+            maze2.update();
+            maze3.update();
 
             window.clear(sf::Color(13, 2, 33));
+            maze1.draw(window);
+            maze2.draw(window);
+            maze3.draw(window);
             window.draw(title);
             window.draw(playAgainButton);
             window.draw(exitButton);
