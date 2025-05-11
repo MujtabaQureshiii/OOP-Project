@@ -57,7 +57,7 @@ public:
 
 class Maze {
 private:
-    std::vector<Cell> cells;
+    vector<Cell> cells;
     int size;
 
     void reset() {
@@ -139,6 +139,100 @@ public:
     int getSize() const { return size; }
 };
 
+class MazeAnimation {
+private:
+    sf::RectangleShape miniMaze;
+    vector<sf::RectangleShape> walls;
+    sf::CircleShape player;
+    sf::Vector2f position;
+    sf::Vector2f velocity;
+    float rotation;
+    float rotationSpeed;
+
+public:
+
+    MazeAnimation(float x, float y) {
+        position = sf::Vector2f(x, y);
+
+        // Create mini maze
+        miniMaze.setSize(sf::Vector2f(120, 120));
+        miniMaze.setFillColor(sf::Color(20, 20, 40));
+        miniMaze.setOutlineThickness(3);
+        miniMaze.setOutlineColor(sf::Color(100, 100, 200));
+        miniMaze.setOrigin(60, 60);
+
+        // Create some walls inside the mini maze
+        for (int i = 0; i < 6; i++) {
+            sf::RectangleShape wall;
+            wall.setFillColor(sf::Color(223, 243, 228));
+
+            if (i % 2 == 0) {
+                // Horizontal walls
+                wall.setSize(sf::Vector2f(40, 4));
+                wall.setPosition(-20 + (i / 2) * 10, -30 + (i / 2) * 15);
+            }
+            else {
+                // Vertical walls
+                wall.setSize(sf::Vector2f(4, 40));
+                wall.setPosition(-30 + ((i - 1) / 2) * 20, -20 + ((i - 1) / 2) * 15);
+            }
+            walls.push_back(wall);
+        }
+
+        // Create player dot
+        player.setRadius(5);
+        player.setFillColor(sf::Color(247, 23, 53));
+        player.setOrigin(5, 5);
+        player.setPosition(0, 0);
+
+        // Initialize animation properties
+        velocity = sf::Vector2f(1.0f, 1.5f);
+        rotation = 0.0f;
+        rotationSpeed = 0.2f;
+    }
+
+    void update() {
+        // Update position
+        position += velocity;
+
+        // Bounce off screen edges
+        if (position.x < 200 || position.x > 1080) {
+            velocity.x = -velocity.x;
+        }
+
+        if (position.y < 250 || position.y > 550) {
+            velocity.y = -velocity.y;
+        }
+
+        // Rotate the maze
+        rotation += rotationSpeed;
+
+        // Move player inside the maze in a circular pattern
+        float playerRadius = 30;
+        float playerX = cos(rotation * 2) * playerRadius;
+        float playerY = sin(rotation * 2) * playerRadius;
+        player.setPosition(playerX, playerY);
+    }
+
+    void draw(sf::RenderWindow& window) {
+        // Save current transform
+        sf::Transform transform;
+        transform.translate(position);
+        transform.rotate(rotation);
+
+        // Draw the maze
+        window.draw(miniMaze, transform);
+
+        // Draw the walls
+        for (auto& wall : walls) {
+            window.draw(wall, transform);
+        }
+
+        // Draw the player
+        window.draw(player, transform);
+    }
+};
+
 class Lobby {
 private:
     sf::RenderWindow& window;
@@ -149,16 +243,35 @@ private:
     sf::RectangleShape startButton;
     sf::RectangleShape exitButton;
     bool startgame;
-    
+    sf::Texture lobbyimage;
+	sf::Sprite lobbySprite;
+
     // Hover state tracking
     bool startHovered;
     bool exitHovered;
 
+    // Animation
+    MazeAnimation mazeAnimation1;
+    MazeAnimation mazeAnimation2;
+    MazeAnimation mazeAnimation3;
+
 public:
-    Lobby(sf::RenderWindow& window) :window(window), startgame(false), startHovered(false), exitHovered(false) {
+    Lobby(sf::RenderWindow& window) :
+        window(window),
+        startgame(false),
+        startHovered(false),
+        exitHovered(false),
+        mazeAnimation1(200, 350),
+        mazeAnimation2(window.getSize().x - 200, 250),
+        mazeAnimation3(window.getSize().x / 2, 550)
+    {
         if (!font.loadFromFile("Data/Roboto.ttf")) {
-            std::cout << "Error loading font" << std::endl;
+            cout << "Error loading font" << std::endl;
         }
+		if (!lobbyimage.loadFromFile("Data/lobby.jpg")) {
+			cout << "Error loading image" << std::endl;
+		}
+		
 
         title.setFont(font);
         title.setString("Maze Game");
@@ -171,35 +284,35 @@ public:
         startText.setString("Press Enter to Start");
         startText.setCharacterSize(30);
         startText.setFillColor(sf::Color::White);
-        
+
         // Exit button setup
         exitText.setFont(font);
         exitText.setString("Press Escape to Exit");
         exitText.setCharacterSize(30);
         exitText.setFillColor(sf::Color::White);
-        
+
         // Create button rectangles
         const float padding = 20.0f;
-        startButton.setSize({startText.getGlobalBounds().width + padding * 2, startText.getGlobalBounds().height + padding * 2});
+        startButton.setSize({ startText.getGlobalBounds().width + padding * 2, startText.getGlobalBounds().height + padding * 2 });
         startButton.setFillColor(sf::Color(50, 50, 100));
         startButton.setOutlineThickness(2);
         startButton.setOutlineColor(sf::Color(100, 100, 200));
-        
-        exitButton.setSize({exitText.getGlobalBounds().width + padding * 2, exitText.getGlobalBounds().height + padding * 2});
+
+        exitButton.setSize({ exitText.getGlobalBounds().width + padding * 2, exitText.getGlobalBounds().height + padding * 2 });
         exitButton.setFillColor(sf::Color(100, 50, 50));
         exitButton.setOutlineThickness(2);
         exitButton.setOutlineColor(sf::Color(200, 100, 100));
-        
+
         // Position the buttons
         startButton.setPosition(window.getSize().x / 2 - startButton.getSize().x / 2, 300);
         exitButton.setPosition(window.getSize().x / 2 - exitButton.getSize().x / 2, 400);
-        
+
         // Position the text in the middle of the buttons
         startText.setPosition(
             startButton.getPosition().x + (startButton.getSize().x - startText.getGlobalBounds().width) / 2,
             startButton.getPosition().y + (startButton.getSize().y - startText.getGlobalBounds().height) / 2 - 15
         );
-        
+
         exitText.setPosition(
             exitButton.getPosition().x + (exitButton.getSize().x - exitText.getGlobalBounds().width) / 2,
             exitButton.getPosition().y + (exitButton.getSize().y - exitText.getGlobalBounds().height) / 2 - 15
@@ -209,10 +322,18 @@ public:
     bool run() {
         while (window.isOpen()) {
             handlevent();
+            update();
             render();
             if (startgame) return true;
         }
         return false;
+    }
+
+    void update() {
+        // Update animations
+        mazeAnimation1.update();
+        mazeAnimation2.update();
+        mazeAnimation3.update();
     }
 
     void handlevent() {
@@ -223,14 +344,14 @@ public:
                 if (event.key.code == sf::Keyboard::Enter) startgame = true;
                 else if (event.key.code == sf::Keyboard::Escape) window.close();
             }
-            
+
             // Handle mouse movement for hover effects
             if (event.type == sf::Event::MouseMoved) {
                 sf::Vector2f mousePos(event.mouseMove.x, event.mouseMove.y);
                 startHovered = startButton.getGlobalBounds().contains(mousePos);
                 exitHovered = exitButton.getGlobalBounds().contains(mousePos);
             }
-            
+
             // Handle mouse clicks on buttons
             if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
                 sf::Vector2f mousePos(event.mouseButton.x, event.mouseButton.y);
@@ -238,7 +359,7 @@ public:
                 if (exitButton.getGlobalBounds().contains(mousePos)) window.close();
             }
         }
-        
+
         // Update button colors based on hover status
         startButton.setFillColor(startHovered ? sf::Color(80, 80, 180) : sf::Color(50, 50, 100));
         exitButton.setFillColor(exitHovered ? sf::Color(180, 80, 80) : sf::Color(100, 50, 50));
@@ -246,15 +367,21 @@ public:
 
     void render() {
         window.clear(sf::Color(13, 2, 33));
+
+        // Draw animated mazes
+        mazeAnimation1.draw(window);
+        mazeAnimation2.draw(window);
+        mazeAnimation3.draw(window);
+
         window.draw(title);
         window.draw(startButton);
         window.draw(exitButton);
         window.draw(startText);
         window.draw(exitText);
+		window.draw(lobbySprite);
         window.display();
     }
 };
-
 class LevelSelector {
 private:
     sf::RenderWindow& window;
@@ -531,7 +658,7 @@ private:
     sf::RectangleShape currentHighlight, goalHighlight;
 
 public:
-    Game(sf::RenderWindow& win, int mazeSize) : window(win), maze(mazeSize),mazesize(mazesize) {
+    Game(sf::RenderWindow& win, int mazeSize) : window(win), maze(mazeSize),mazesize(mazeSize) {
         font.loadFromFile("Data/Roboto.ttf");
        
 
