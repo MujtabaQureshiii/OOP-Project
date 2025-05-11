@@ -100,9 +100,19 @@ The project is organized into modular classes such as `Maze`, `Player`, `Game`, 
 - Fully functional single-player maze game  
 - Successfully met all proposed objectives  
 - Codebase that is modular and extendable
+### Start Screen 
   ![Start Screen](images/start_screen.PNG)
-
+### Difficulty Select Screen
+  ![Difficulty setting screen](images/select_screen.PNG)
+### Grid Screen
+  
   ![maze grid](images/maze_grid.PNG)
+### Game Win Screen
+  ![Game Win screen](images/cong_screen.PNG)
+### Game Over Screen
+  ![Game over screen](images/over_screen.PNG)
+  
+  
 
 ### Testing and Validation:
 - Unit tested core logic like maze generation and collision detection  
